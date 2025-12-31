@@ -11,31 +11,8 @@
 <button onclick="kirim()">Kirim</button>
 
 <script>
-const url = "https://script.google.com/macros/s/AKfycbz_eLODkryyyMyWQmcPxU2ALaMWlutMgzAJy1LMamF0tEexnUGAwmuEwabYaDj0CWbl/exec";
-
-fetch(url)
-  .then(res => res.json())
-  .then(fields => {
-    fields.forEach((f, i) => {
-      const label = document.createElement("label");
-      label.innerText = f.name;
-      document.getElementById("form").appendChild(label);
-      document.getElementById("form").appendChild(document.createElement("br"));
-
-      const input = document.createElement("input");
-      input.type = f.type;
-      input.id = "field" + i;
-      input.required = true;
-
-      document.getElementById("form").appendChild(input);
-      document.getElementById("form").appendChild(document.createElement("br"));
-      document.getElementById("form").appendChild(document.createElement("br"));
-    });
-  });
-
 async function kirim() {
   const inputs = document.querySelectorAll("#form input");
-  const files = [];
   const payload = {
     text1: inputs[0].value,
     text2: inputs[1].value,
@@ -44,14 +21,19 @@ async function kirim() {
   };
 
   for (let i = 3; i < inputs.length; i++) {
-    const file = inputs[i].files[0];
-    const base64 = await toBase64(file);
+    const files = [];
 
-    payload.files.push({
-      name: file.name,
-      type: file.type,
-      content: base64
-    });
+    for (const file of inputs[i].files) {
+      const base64 = await toBase64(file);
+      files.push({
+        name: file.name,
+        type: file.type,
+        size: file.size,
+        content: base64
+      });
+    }
+
+    payload.files.push(files);
   }
 
   fetch(url, {
@@ -64,13 +46,60 @@ async function kirim() {
     window.location.href = "terimakasih.html";
   });
 }
+</script>
 
-function toBase64(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result.split(",")[1]);
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
+
+<script>
+const url = "https://script.google.com/macros/s/AKfycbzaca1bjGDmMc7E969W-oX7hyfHJxyJbJdd5lkbnGMgXVNtp_imw1EqT6FWUOgBLQI/exec";
+let fieldConfig = [];
+
+fetch(url)
+  .then(res => res.json())
+  .then(fields => {
+    fieldConfig = fields;
+    fields.forEach((f, i) => {
+      const label = document.createElement("label");
+      label.innerText = f.name;
+      form.appendChild(label);
+      form.appendChild(document.createElement("br"));
+
+      let input = document.createElement("input");
+      input.type = f.type === "file" ? "file" : f.type;
+      input.id = "field" + i;
+
+      if (f.type === "file") {
+        input.multiple = true;
+        input.accept = "*/*";
+        input.onchange = () => previewFiles(input, i);
+      }
+
+      input.required = true;
+      form.appendChild(input);
+
+      const preview = document.createElement("div");
+      preview.id = "preview" + i;
+      preview.style.fontSize = "12px";
+      form.appendChild(preview);
+
+      form.appendChild(document.createElement("br"));
+      form.appendChild(document.createElement("br"));
+    });
+  });
+
+function previewFiles(input, index) {
+  const preview = document.getElementById("preview" + index);
+  preview.innerHTML = "";
+
+  Array.from(input.files).forEach(file => {
+    if (file.size > 5 * 1024 * 1024) {
+      alert(`File ${file.name} lebih dari 5 MB`);
+      input.value = "";
+      return;
+    }
+
+    const item = document.createElement("div");
+    item.innerText = `✔ ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
+    preview.appendChild(item);
   });
 }
 </script>

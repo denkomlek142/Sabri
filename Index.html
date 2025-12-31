@@ -3,24 +3,48 @@
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Form Input Dokumen</title>
+
+  <style>
+    body { font-family: Arial; padding: 15px; }
+    label { font-weight: bold; }
+    input { width: 100%; margin-top: 5px; }
+    button { padding: 10px; width: 100%; font-size: 16px; }
+  </style>
 </head>
 <body>
 
 <h3>Form Input Dokumen</h3>
 
 <form id="form"></form>
-<button onclick="kirim()">Kirim</button>
+
+<button id="btnKirim" onclick="kirim()">Kirim</button>
+
+<!-- DIALOG MENUNGGU -->
+<div id="loading" style="
+  display:none;
+  position:fixed;
+  top:0; left:0;
+  width:100%; height:100%;
+  background:rgba(0,0,0,0.5);
+  color:white;
+  font-size:18px;
+  text-align:center;
+  padding-top:40%;
+  z-index:9999;
+">
+  ⏳ Sedang mengirim data...
+</div>
 
 <script>
 /* ===============================
-   BAGIAN A
-   KONFIGURASI & FORM GENERATOR
+   KONFIGURASI
    =============================== */
-
-const url = "https://script.google.com/macros/s/AKfycbxHsqgRl42qYJt954macJ77UHEkYmEOmtgY2mfc3j2WBBCY9IxrQIpINPyrqrqsdE4x/exec";
+const url = "https://script.google.com/macros/s/AKfycbxF7X-IIgH2Yq4tWIxQvxlmKxkCpEfqSVKNEUIRNFpyyJBMmvcIpW-XH7OeydEGaw6u/exec";
 const form = document.getElementById("form");
 
-// Ambil struktur form dari Google Sheet
+/* ===============================
+   GENERATE FORM DARI GOOGLE SHEET
+   =============================== */
 fetch(url)
   .then(res => res.json())
   .then(fields => {
@@ -31,107 +55,7 @@ fetch(url)
       form.appendChild(document.createElement("br"));
 
       const input = document.createElement("input");
-      input.type = f.type === "file" ? "file" : f.type;
       input.id = "field" + i;
 
       if (f.type === "file") {
-        input.multiple = true;
-        input.onchange = () => previewFiles(input, i);
-      }
-
-      input.required = true;
-      form.appendChild(input);
-
-      const preview = document.createElement("div");
-      preview.id = "preview" + i;
-      preview.style.fontSize = "12px";
-      form.appendChild(preview);
-
-      form.appendChild(document.createElement("br"));
-      form.appendChild(document.createElement("br"));
-    });
-  });
-
-/* ===============================
-   BAGIAN B
-   PREVIEW FILE & VALIDASI 5 MB
-   =============================== */
-
-function previewFiles(input, index) {
-  const preview = document.getElementById("preview" + index);
-  preview.innerHTML = "";
-
-  Array.from(input.files).forEach(file => {
-    if (file.size > 5 * 1024 * 1024) {
-      alert(`File ${file.name} lebih dari 5 MB`);
-      input.value = "";
-      return;
-    }
-
-    const item = document.createElement("div");
-    item.innerText = `✔ ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
-    preview.appendChild(item);
-  });
-}
-
-/* ===============================
-   BAGIAN C
-   >>> BAGIAN KE-4 <<<
-   FUNGSI KIRIM DATA
-   =============================== */
-
-async function kirim() {
-  const inputs = document.querySelectorAll("#form input");
-
-  const payload = {
-    text1: inputs[0].value,
-    text2: inputs[1].value,
-    number: inputs[2].value,
-    files: []
-  };
-
-  // Ambil file mulai kolom E
-  for (let i = 3; i < inputs.length; i++) {
-    const files = [];
-
-    for (const file of inputs[i].files) {
-      const base64 = await toBase64(file);
-      files.push({
-        name: file.name,
-        type: file.type,
-        size: file.size,
-        content: base64
-      });
-    }
-
-    payload.files.push(files);
-  }
-
-  fetch(url, {
-    method: "POST",
-    body: JSON.stringify(payload)
-  })
-  .then(res => res.json())
-  .then(() => {
-    alert("Data berhasil dikirim");
-    window.location.href = "terimakasih.html";
-  });
-}
-
-/* ===============================
-   BAGIAN D
-   HELPER BASE64
-   =============================== */
-
-function toBase64(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result.split(",")[1]);
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-}
-</script>
-
-</body>
-</html>
+        input.type = "file";

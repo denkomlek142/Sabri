@@ -6,28 +6,51 @@
 </head>
 <body>
 
-  <h2>Form Input Data</h2>
+<h2>Form Input Data</h2>
 
-  <input type="text" id="nama" placeholder="Nama"><br><br>
-  <input type="text" id="nohp" placeholder="No HP"><br><br>
-  <textarea id="keterangan" placeholder="Keterangan"></textarea><br><br>
+<form id="form"></form>
+<button onclick="kirim()">Kirim</button>
 
-  <button onclick="kirim()">Kirim Data</button>
+<script>
+const url = "https://script.google.com/macros/s/AKfycbzhoyaT5Gfj7Ryz8t82IvIW0R2aRCIzUIyQmrcCikqUqul7sTxIj8OdpHwJzmLhhEgH/exec";
 
-  <script>
-    function kirim() {
-      fetch("https://script.google.com/macros/s/AKfycbxk2eEuz9G5iKlGadOzj1-KbRM7KckqGMNt_mqXDmym6RltKkaK1RWQLrsZZGVAIw31/exec", {
-        method: "POST",
-        body: JSON.stringify({
-          nama: document.getElementById("nama").value,
-          nohp: document.getElementById("nohp").value,
-          keterangan: document.getElementById("keterangan").value
-        })
-      })
-      .then(res => res.json())
-      .then(res => alert("Data berhasil dikirim"));
-    }
-  </script>
+// Ambil header dari Google Sheet
+fetch(url)
+  .then(res => res.json())
+  .then(headers => {
+    headers.forEach((h, i) => {
+      if (i === 0) return; // Skip Timestamp
+      const input = document.createElement("input");
+      input.placeholder = h;
+      input.id = h;
+      input.required = true;
+      document.getElementById("form").appendChild(input);
+      document.getElementById("form").appendChild(document.createElement("br"));
+      document.getElementById("form").appendChild(document.createElement("br"));
+    });
+  });
+
+function kirim() {
+  const inputs = document.querySelectorAll("#form input");
+  const data = {};
+
+  inputs.forEach(input => {
+    data[input.id] = input.value;
+  });
+
+  fetch(url, {
+    method: "POST",
+    body: JSON.stringify(data)
+  })
+  .then(res => res.json())
+  .then(res => {
+    alert("Data berhasil dikirim");
+
+    // OPSI TERBAIK & AMAN
+    window.location.href = "terimakasih.html";
+  });
+}
+</script>
 
 </body>
 </html>

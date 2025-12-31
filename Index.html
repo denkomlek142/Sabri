@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Form Input Data</title>
+</head>
+<body>
+
+  <h2>Form Input Data</h2>
+
+  <input type="text" id="nama" placeholder="Nama"><br><br>
+  <input type="text" id="nohp" placeholder="No HP"><br><br>
+  <textarea id="keterangan" placeholder="Keterangan"></textarea><br><br>
+
+  <button onclick="kirim()">Kirim Data</button>
+
+  <script>
+    function kirim() {
+      fetch("https://script.google.com/macros/s/AKfycbxk2eEuz9G5iKlGadOzj1-KbRM7KckqGMNt_mqXDmym6RltKkaK1RWQLrsZZGVAIw31/exec", {
+        method: "POST",
+        body: JSON.stringify({
+          nama: document.getElementById("nama").value,
+          nohp: document.getElementById("nohp").value,
+          keterangan: document.getElementById("keterangan").value
+        })
+      })
+      .then(res => res.json())
+      .then(res => alert("Data berhasil dikirim"));
+    }
+  </script>
+
+</body>
+</html>
